@@ -1,0 +1,31 @@
+# @package _global_
+defaults:
+  - override /dataset: edinburgh_audio
+
+dataset:
+  segment_seconds: 1.0
+
+spec:
+  _target_: semcom.encoders.audio.task.AudioReconTask
+  model: {frame_len: 128, channels: 128, num_blocks: 4, symbols_per_frame: 64, kernel: 5}
+  eval: ${eval}
+
+train:
+  epochs: 20
+  batch_size: 32
+  lr: 1.0e-3
+  weight_decay: 0.0
+  warmup_steps: 200
+  min_lr_frac: 0.05
+  grad_clip: 1.0
+  snr_range_db: [0, 25]
+  val_snr_db: 10
+  log_every: 50
+  num_workers: 0
+  max_steps_per_epoch: null  # cap for smoke runs/benchmarks
+
+eval:
+  snr_grid_db: [0, 5, 10, 15, 20, 25]
+  max_items: 300
+  batch_size: 50
+  pesq: true

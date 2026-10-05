@@ -1,0 +1,13 @@
+defaults:
+  - dataset: cifar10
+  - channel: awgn
+  - tracking: wandb
+  - experiment: default
+  - _self_
+
+hydra:
+  job:
+    chdir: false
+
+seed: 42
+data_root: data_cache

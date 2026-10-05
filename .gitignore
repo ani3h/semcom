@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+
+data_cache/
+outputs/
+multirun/
+wandb/
+
+.pytest_cache/
+.coverage
+.DS_Store

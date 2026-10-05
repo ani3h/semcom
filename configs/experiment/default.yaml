@@ -1,0 +1,4 @@
+snr_range_db: [0, 25]
+snr_step_db: 1.0
+batch_size: 32
+num_workers: 2

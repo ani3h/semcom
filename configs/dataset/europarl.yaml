@@ -1,0 +1,10 @@
+_target_: semcom.data.text_europarl.EuroparlDataset
+root: ${data_root}
+lang: en
+pair_lang: de
+max_samples: 100000
+min_words: 4
+max_words: 30
+val_fraction: 0.1
+test_fraction: 0.1
+seed: ${seed}

@@ -1,0 +1,5 @@
+_target_: semcom.data.image_mnist.MNISTDataset
+root: ${data_root}
+val_fraction: 0.1
+seed: ${seed}
+download: true

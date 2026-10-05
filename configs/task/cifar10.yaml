@@ -1,0 +1,27 @@
+# @package _global_
+defaults:
+  - override /dataset: cifar10
+
+spec:
+  _target_: semcom.encoders.image.task.CIFARReconTask
+  model: {channels: 16, width: 32}
+  eval: ${eval}
+
+train:
+  epochs: 30
+  batch_size: 64
+  lr: 1.0e-3
+  weight_decay: 0.0
+  warmup_steps: 200
+  min_lr_frac: 0.05
+  grad_clip: 1.0
+  snr_range_db: [0, 25]
+  val_snr_db: 10
+  log_every: 100
+  num_workers: 0
+  max_steps_per_epoch: null  # cap for smoke runs/benchmarks
+
+eval:
+  snr_grid_db: [0, 5, 10, 15, 20, 25]
+  max_items: null
+  batch_size: 500

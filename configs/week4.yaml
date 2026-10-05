@@ -1,0 +1,18 @@
+defaults:
+  - dataset: cifar10
+  - channel: awgn
+  - tracking: wandb
+  - _self_
+  - task: ???
+
+hydra:
+  job:
+    chdir: false
+
+seed: 42
+data_root: data_cache
+out_root: outputs/week4
+device: auto
+
+tracking:
+  mode: offline  # switch to online after `wandb login`, or `wandb sync` the offline runs later

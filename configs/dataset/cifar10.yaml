@@ -1,0 +1,5 @@
+_target_: semcom.data.image_cifar10.CIFAR10Dataset
+root: ${data_root}
+val_fraction: 0.1
+seed: ${seed}
+download: true
