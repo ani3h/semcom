@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 
 from ..base import TaskSpec
-from .metrics import pesq_mean, si_sdr, stoi_mean
+from .metrics import log_spectral_distance, pesq_mean, si_sdr, stoi_mean
 from .model import SEAudioTransceiver
 
 
@@ -13,7 +13,7 @@ class AudioReconTask(TaskSpec):
     clean/noisy speech with transcripts and no class or keyword labels."""
 
     modality = "audio"
-    primary_metric = "stoi"
+    primary_metric = "stoi"  # event audio (use_stoi false) is judged on si_sdr / lsd instead
 
     def __init__(self, model: dict | None = None, eval: dict | None = None, sample_rate: int = 16000):
         self.model_cfg = dict(model or {})
@@ -22,10 +22,13 @@ class AudioReconTask(TaskSpec):
         self.eval_batch_size = eval.get("batch_size", 50)
         self.eval_seed = eval.get("seed", 1234)
         self.use_pesq = eval.get("pesq", True)
+        self.use_stoi = eval.get("stoi", True)  # STOI is a speech-intelligibility measure: switch it off for event audio
+        self.use_lsd = eval.get("lsd", False)
         self.fit_items = eval.get("scale_fit_items", 500)
         self.sample_rate = sample_rate
         self.scale = 1.0
-        self.metric_names = ["si_sdr", "stoi"] + (["pesq"] if self.use_pesq else [])
+        self.metric_names = ["si_sdr"] + (["stoi"] if self.use_stoi else []) + (["pesq"] if self.use_pesq else []) \
+            + (["lsd"] if self.use_lsd else [])
 
     def fit(self, train_dataset) -> None:
         n = min(self.fit_items, len(train_dataset))
@@ -61,7 +64,11 @@ class AudioReconTask(TaskSpec):
             ref.append(batch["x"].cpu())
         est, ref = torch.cat(est), torch.cat(ref)
 
-        results = {"si_sdr": si_sdr(est, ref).mean().item(), "stoi": stoi_mean(est, ref, self.sample_rate)}
+        results = {"si_sdr": si_sdr(est, ref).mean().item()}
+        if self.use_stoi:
+            results["stoi"] = stoi_mean(est, ref, self.sample_rate)
+        if self.use_lsd:
+            results["lsd"] = log_spectral_distance(est, ref).mean().item()
         if self.use_pesq:
             score = pesq_mean(est, ref, self.sample_rate)
             results["pesq"] = float("nan") if score is None else score

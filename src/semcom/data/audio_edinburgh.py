@@ -105,16 +105,26 @@ class EdinburghAudioDataset(SemComDataset):
     def __len__(self) -> int:
         return len(self._indices)
 
+    def utterance_length(self, idx: int) -> int:
+        """Samples (at target_sample_rate) in the full utterance behind item idx."""
+        return self._waveforms[self._indices[idx]].shape[0]
+
+    def get_crop(self, idx: int, start: int | None = None) -> torch.Tensor:
+        """The segment_seconds window of utterance idx beginning at `start` samples
+        (center crop when None); zero-padded if the utterance is shorter. Lets callers
+        cache per-crop quantities for a fixed set of crops."""
+        waveform = self._waveforms[self._indices[idx]].float()
+        excess = waveform.shape[0] - self.segment_length
+        if excess < 0:
+            return torch.nn.functional.pad(waveform, (0, -excess))
+        start = excess // 2 if start is None else start
+        return waveform[start : start + self.segment_length]
+
     def __getitem__(self, idx: int) -> dict:
         i = self._indices[idx]
-        waveform = self._waveforms[i].float()
-
-        excess = waveform.shape[0] - self.segment_length
-        if excess >= 0:
-            start = int(torch.randint(0, excess + 1, (1,))) if self.split == "train" else excess // 2
-            waveform = waveform[start : start + self.segment_length]
-        else:
-            waveform = torch.nn.functional.pad(waveform, (0, -excess))
+        excess = self._waveforms[i].shape[0] - self.segment_length
+        start = int(torch.randint(0, excess + 1, (1,))) if self.split == "train" and excess >= 0 else None
+        waveform = self.get_crop(idx, start)
 
         noisy_path = self.noisy_paths.get(self._names[i])
         return {"input": waveform, "label": None, "raw": str(noisy_path) if noisy_path else None}
