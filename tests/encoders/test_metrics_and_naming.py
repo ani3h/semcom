@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from semcom.encoders.audio.metrics import si_sdr
+from semcom.encoders.audio.metrics import log_spectral_distance, si_sdr
 from semcom.encoders.image.task import psnr
 from semcom.encoders.text.task import bleu
 from semcom.encoders.text.tokenizer import WordTokenizer, split_tokens
@@ -45,3 +45,18 @@ def test_run_name_accepts_number_or_range_label():
     assert "-snr10-" in make_run_name("image", "cifar10", "awgn", 10.0, 42)
     name = make_run_name("text", "europarl", "rayleigh", "U0-25", 7)
     assert name.startswith("text-europarl-rayleigh-snrU0-25-seed7-")
+
+
+def test_lsd_is_zero_for_identical_audio_and_grows_with_noise():
+    ref = torch.randn(2, 16000)
+    assert log_spectral_distance(ref, ref).abs().max() < 1e-4
+    assert (log_spectral_distance(ref + 0.5 * torch.randn_like(ref), ref) > log_spectral_distance(ref + 0.05 * torch.randn_like(ref), ref)).all()
+
+
+def test_lsd_ignores_digital_silence_in_the_reference():
+    ref = torch.cat([torch.randn(1, 8000), torch.zeros(1, 8000)], dim=1)  # half noise, half digital silence (as in ESC-50 padding)
+    est = ref.clone()
+    est[:, 8000:] = 1e-4 * torch.randn(1, 8000)  # tiny non-zero output where the reference is silent
+    plain = log_spectral_distance(est, ref, silence_floor_db=None)  # no masking: silence frames dominate
+    masked = log_spectral_distance(est, ref)
+    assert masked.item() < 3.0 and plain.item() > 3 * masked.item()
