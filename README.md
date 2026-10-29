@@ -2,7 +2,7 @@
 
 Develop generalised modality-agnostic semantic performance metrics to characterise the efficacy of an end-to-end semantic communication set-up.
 
-Core metric under development: `M = g(F, U, E; channel_conditions)` — Fidelity, Task Utility, Efficiency, computed in a shared embedding space. This repo currently covers the infrastructure layer (dataset loaders, channel simulation, experiment tracking), the per-modality transceivers (Week 4) and the common semantic space (Week 5). The F/U/E metric logic lands in Weeks 6-7.
+Core metric under development: `M = g(F, U, E; channel_conditions)` — Fidelity, Task Utility, Efficiency, computed in a shared embedding space. This repo currently covers the infrastructure layer (dataset loaders, channel simulation, experiment tracking), the per-modality transceivers and the common semantic space.
 
 ## Setup
 
@@ -47,7 +47,7 @@ python experiments/week4_plot.py                                  # AWGN vs Rayl
 
 Outputs land in `outputs/week4/<task>/<channel>/` (`results.json`, `snr_curve.png`, `best.pt`). W&B runs are grouped by modality and default to `tracking.mode=offline`; after `wandb login`, set `tracking.mode=online` or `wandb sync wandb/offline-run-*`. Smoke-test any task quickly with `tracking.mode=disabled train.epochs=1 train.max_steps_per_epoch=40`.
 
-## Week 5: common semantic space
+## Common Semantic Space
 
 `src/semcom/common_space/` puts every modality's source and received signal into a 512-d, L2-normalised space behind `embed_source(batch)` / `embed_received(batch, channel, snr_db)`. Image and text use frozen **CLIP** (`openai/clip-vit-base-patch32`) and audio uses frozen **CLAP** (`laion/clap-htsat-unfused`). Both are 512-d but they are *different, unaligned spaces*: cross-modal comparison is only valid between image and text, and cosine values are only comparable within a modality (see `random_pair_cosine` in the results).
 
@@ -63,7 +63,7 @@ python experiments/week5_plot.py                                      # retrieva
 
 Methods notes, including the input soft-clip used for Rayleigh and what the data can and cannot support: [docs/week5_common_space.md](docs/week5_common_space.md).
 
-## Week 5b: a shared space S for text, audio and image (Stage 0 done)
+## A shared space S for text, audio and image
 
 S is the per-domain mean-centered CLIP space. Image and text are native to it; audio enters through CLAP, per-modality centering and a CLAP-to-CLIP bridge trained only on caption text. Stage 0 checks that this works on clean data before any channel experiment. Report (generated from `results.json`): [docs/week5b_stage0.md](docs/week5b_stage0.md).
 
@@ -74,7 +74,7 @@ python experiments/week5b_gate.py      # clean cross-modal gate (audio->text, au
 python experiments/week5b_report.py    # regenerate docs/week5b_stage0.md
 ```
 
-## Week 5b Stage 1: new transceivers, S anchors, heads, Fidelity selection
+## Stage 1: new transceivers, S anchors, heads, Fidelity selection
 
 Adds a caption-domain text transceiver and an ESC-50 event-audio transceiver (folds 1-3 train, 4 validation, 5 test only), caches per-domain centering statistics fitted on train data only, trains three head variants per task and channel, and compares Fidelity candidates (F_abs headline, F_ret, clean ceiling C, raw and centered cosine). Report (generated from the results files): [docs/week5b_stage1.md](docs/week5b_stage1.md).
 
@@ -87,7 +87,7 @@ python experiments/week5b_fselect.py                                  # F statis
 python experiments/week5b_report_stage1.py                            # regenerates docs/week5b_stage1.md and the variant choice
 ```
 
-## Week 5b Stage 2: co-primary variants, 3 seeds, cross-modal channel experiments
+## Stage 2: co-primary variants, 3 seeds, cross-modal channel experiments
 
 Trains `cos5` and `cen` heads for 3 seeds on every task and channel, builds embedding caches (items x 5 noise draws x SNR grid, in S) for the heads (approach A) and for the pretrained encoders on the decoded output (approach B), and computes every statistic from those caches with percentile bootstrap CIs over items and a separate head-seed spread. The amended variant rule and the held-out paraphrase prompts were written to `outputs/week5b/stage2/protocol_declared.json` before any Stage 2 seed was run. Report: [docs/week5b_stage2.md](docs/week5b_stage2.md).
 
@@ -100,8 +100,6 @@ python experiments/week5b_s2_embed.py kind=B 'tasks=[cifar10]' 'splits=[test]'  
 python experiments/week5b_s2_metrics.py section=F             # also section=cross, section=within
 python experiments/week5b_s2_report.py                        # regenerates docs/week5b_stage2.md and docs/figures_week5b_stage2/
 ```
-
-Everything long-running is resumable: a head is done iff its `train_*.json` exists, and embedding files that exist are skipped. The machine has 18 GB of memory and each head process holds 4-5 GB, so the scheduler admits a new job only while at least 25% of memory is free.
 
 ## Tests
 
