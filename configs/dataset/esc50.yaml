@@ -1,0 +1,4 @@
+_target_: semcom.data.audio_esc50.ESC50Dataset
+root: ${data_root}
+target_sample_rate: 16000
+download: false

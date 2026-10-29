@@ -1,0 +1,5 @@
+_target_: semcom.data.text_captions.CaptionDataset
+root: ${data_root}
+holdout: 5000
+seed: ${seed}
+prompt_repeat: 0
