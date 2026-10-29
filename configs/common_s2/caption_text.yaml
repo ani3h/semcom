@@ -1,0 +1,24 @@
+# @package _global_
+task: caption_text
+dataset_name: captions
+dataset_overrides: {prompt_repeat: 0}  # heads never see the class prompts the transceiver was trained on
+head: {kind: text_attention, sym_dim: 16, d_model: 256, nhead: 4, ff: 512, max_len: 64, dropout: 0.1}
+train:  # extended: up to 80 epochs, best-validation checkpoint, plateau LR decay, early stopping with patience 8
+  epochs: 80
+  batch_size: 512
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  warmup_steps: 200
+  min_lr_frac: 0.01
+  grad_clip: 1.0
+  snr_range_db: [0, 25]
+  val_snr_db: 10
+  val_batches: 10
+  log_every: 20
+  sigma_items: 2000
+  schedule: plateau
+  lr_factor: 0.3
+  lr_patience: 3
+  patience: 8
+  cache_symbols: true
+  length_chunks: 3  # run the head on 3 length-sorted chunks of each batch (same batches; ~2x fewer padded FLOPs)

@@ -1,0 +1,28 @@
+defaults:
+  - channel: awgn
+  - tracking: wandb
+  - _self_
+  - common: ???
+
+hydra:
+  job:
+    chdir: false
+
+seed: 42
+data_root: data_cache
+w4_root: outputs/week4
+out_root: outputs/week5
+anchor_root: data_cache/anchors
+device: auto
+target: raw  # raw: Week 5 recipe (raw CLIP/CLAP anchors); centered: train toward the S anchors (Week 5b)
+dataset_overrides: {}
+space_root: outputs/week5b/space
+bridge_root_s0: outputs/week5b/bridge
+
+anchors:
+  clip: openai/clip-vit-base-patch32
+  clap: laion/clap-htsat-unfused
+  audio_train_crops: 3  # fixed random crops per training utterance (random crops can't be cached)
+
+tracking:
+  mode: offline  # switch to online after `wandb login`, or `wandb sync` the offline runs later

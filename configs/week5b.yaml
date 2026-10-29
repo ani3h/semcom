@@ -1,0 +1,62 @@
+defaults:
+  - tracking: wandb
+  - _self_
+
+hydra:
+  job:
+    chdir: false
+
+seed: 42
+seeds: [42, 43, 44]  # the bridge and the gate are cheap, so spread over 3 seeds is reported (decision seed: 42)
+data_root: data_cache
+out_root: outputs/week5b
+anchor_root: data_cache/anchors
+bridge_root: data_cache/bridge
+device: auto
+w4_root: outputs/week4
+
+captions:
+  root: data_cache/captions
+  n_coco_train: 150000
+  n_coco_eval: 5000
+  min_words: 3
+
+esc50:
+  template: "This is a sound of {}."  # pre-registered; used for BOTH native CLAP zero-shot and the S-space prompts
+  prompt_variants: ["{}", "the sound of {}", "This is a sound of {}."]  # secondary prompt-sensitivity rows
+
+bridge:
+  kinds: [linear, mlp]
+  hidden: 1024
+  epochs: 12
+  batch_size: 1024
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  cos_weight: 0.5
+  init_temp: 0.07
+  gallery: 1000
+  select_margin: 0.05  # pre-registered: pick the MLP over linear only if it beats linear's VAL recall@1 by this much
+
+gate:
+  g1_abs: 0.30  # audio->text top-1 in S, ESC-50 test fold (chance 0.02)
+  g1_rel: 0.60  # ... and at least this fraction of native CLAP zero-shot (same clips, classes, template)
+  g2_min_ratio: 2.0  # audio->image balanced top-1 >= this x chance (0.2) AND lower 95% bootstrap bound > chance
+  n_boot: 2000
+
+tracking:
+  mode: offline
+
+sanity_tasks: [caption_text, esc50_audio]  # override to run one task; results are merged once both exist
+fselect_tasks: [cifar10, mnist, text, audio, caption_text, esc50_audio]  # override to run a subset (own output file per task)
+
+stage1:
+  # Pre-registered "clearly broken" stop thresholds, fixed before any Stage 1 result existed. Evaluated on the VALIDATION split
+  # (text: held-out part of the caption train split; audio: ESC-50 fold 4) at 25 dB AWGN. They are judgement calls, not standards.
+  sanity:
+    text: {min_bleu1: 0.5, min_token_acc: 0.5}
+    audio: {min_si_sdr_db: 0.0, min_s_cosine: 0.2, min_recall_at_1: 0.10}
+  noise_draws: 5  # independent channel realisations per item for F selection (and for the sanity prompt-set check)
+  n_boot: 500
+  f_split: val  # the F / variant selection statistics use VALIDATION data; test statistics are reported but never used to choose
+  f_items: 1000  # items per split (first N of a seeded shuffle; all 400 for ESC-50)
+  variants: {cos: {file: head_cos, target: raw}, cos5: {file: head_cos5, target: raw}, cen: {file: head_cen, target: centered}}

@@ -1,0 +1,21 @@
+# @package _global_
+task: cifar10
+dataset_name: cifar10
+dataset_overrides: {}
+head: {kind: mlp, in_dim: 1024, hidden: 1024, dropout: 0.1}
+train:  # same recipe as Stage 1: 40 epochs, cosine schedule, no early stopping (clean symbols cached: numerically equivalent)
+  epochs: 40
+  batch_size: 512
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  warmup_steps: 100
+  min_lr_frac: 0.05
+  grad_clip: 1.0
+  snr_range_db: [0, 25]
+  val_snr_db: 10
+  val_batches: 10
+  log_every: 20
+  sigma_items: 2000
+  schedule: cosine
+  patience: null
+  cache_symbols: true

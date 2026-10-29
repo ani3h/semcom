@@ -1,0 +1,23 @@
+# @package _global_
+task: audio  # Valentini speech
+dataset_name: edinburgh_audio
+dataset_overrides: {}
+head: {kind: audio_conv, frame_dim: 64, hidden: 256, kernel: 5, dropout: 0.1}
+train:  # extended: up to 80 epochs, best-validation checkpoint, plateau LR decay, early stopping with patience 8
+  epochs: 80
+  batch_size: 256
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  warmup_steps: 100
+  min_lr_frac: 0.01
+  grad_clip: 1.0
+  snr_range_db: [0, 25]
+  val_snr_db: 10
+  val_batches: 10
+  log_every: 20
+  sigma_items: 2000
+  schedule: plateau
+  lr_factor: 0.3
+  lr_patience: 3
+  patience: 8
+  cache_symbols: true

@@ -1,0 +1,28 @@
+# @package _global_
+task: cifar10
+dataset_name: cifar10
+
+head: {kind: mlp, in_dim: 1024, hidden: 1024, dropout: 0.1}
+loss: {init_temp: 0.07, min_temp: 0.01, max_temp: 0.5, cos_weight: 0.5}  # cos_weight=0 -> InfoNCE-only ablation
+
+train:
+  epochs: 40
+  batch_size: 512
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  warmup_steps: 100
+  min_lr_frac: 0.05
+  grad_clip: 1.0
+  snr_range_db: [0, 25]
+  val_snr_db: 10
+  val_batches: 10
+  log_every: 20
+  sigma_items: 2000
+
+eval:
+  snr_grid_db: [0, 5, 10, 15, 20, 25]
+  batch_size: 500
+  max_items: null
+  seed: 1234
+  prompts: [a photo of a airplane, a photo of a automobile, a photo of a bird, a photo of a cat, a photo of a deer,
+            a photo of a dog, a photo of a frog, a photo of a horse, a photo of a ship, a photo of a truck]

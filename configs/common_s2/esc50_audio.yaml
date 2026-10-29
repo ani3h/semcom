@@ -1,0 +1,23 @@
+# @package _global_
+# ESC-50 event audio: heads train on folds 1-3, fold 4 selects the checkpoint, fold 5 is never touched during training.
+# head.dropout and train.weight_decay are overridden for the seed-42 regularisation comparison (baseline 0.1 / 1e-4, R1 0.3 / 1e-3, R2 0.5 / 1e-2).
+task: esc50_audio
+dataset_name: esc50
+dataset_overrides: {}
+head: {kind: audio_conv, frame_dim: 64, hidden: 256, kernel: 5, dropout: 0.1}
+train:  # 100 epochs, cosine schedule, best-validation checkpoint (as in Stage 1)
+  epochs: 100
+  batch_size: 64
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  warmup_steps: 100
+  min_lr_frac: 0.05
+  grad_clip: 1.0
+  snr_range_db: [0, 25]
+  val_snr_db: 10
+  val_batches: 6
+  log_every: 6
+  sigma_items: 300
+  schedule: cosine
+  patience: null
+  cache_symbols: true

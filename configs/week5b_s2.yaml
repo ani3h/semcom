@@ -1,0 +1,25 @@
+defaults:
+  - channel: awgn
+  - tracking: wandb
+  - _self_
+  - common_s2: ???
+
+hydra:
+  job:
+    chdir: false
+
+seed: 42  # head seed (dataset splits are fixed by the transceiver checkpoint's own config)
+variant: cos5  # cos5: raw anchors, cosine weight 5 | cen: centered S anchors, cosine weight 0.5
+tag: ""  # appended to output names (e.g. _R1 for the ESC-50 regularisation comparison)
+data_root: data_cache
+w4_root: outputs/week4
+out_root: outputs/week5b/stage2/heads
+anchor_root: data_cache/anchors
+space_root: outputs/week5b/space
+bridge_dir: outputs/week5b/bridge
+symcache_root: data_cache/symcache
+device: auto
+loss: {init_temp: 0.07, min_temp: 0.01, max_temp: 0.5}
+
+tracking:
+  mode: offline

@@ -1,0 +1,29 @@
+# @package _global_
+task: mnist
+dataset_name: mnist
+
+head: {kind: mlp, in_dim: 256, hidden: 512, dropout: 0.1}
+loss: {init_temp: 0.07, min_temp: 0.01, max_temp: 0.5, cos_weight: 0.5}
+
+train:
+  epochs: 40
+  batch_size: 512
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  warmup_steps: 100
+  min_lr_frac: 0.05
+  grad_clip: 1.0
+  snr_range_db: [0, 25]
+  val_snr_db: 10
+  val_batches: 10
+  log_every: 20
+  sigma_items: 2000
+
+eval:
+  snr_grid_db: [0, 5, 10, 15, 20, 25]
+  batch_size: 500
+  max_items: null
+  seed: 1234
+  prompts: [a handwritten digit 0, a handwritten digit 1, a handwritten digit 2, a handwritten digit 3,
+            a handwritten digit 4, a handwritten digit 5, a handwritten digit 6, a handwritten digit 7,
+            a handwritten digit 8, a handwritten digit 9]

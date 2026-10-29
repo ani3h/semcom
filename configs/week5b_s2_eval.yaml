@@ -1,0 +1,30 @@
+defaults:
+  - tracking: wandb
+  - _self_
+
+hydra:
+  job:
+    chdir: false
+
+seed: 42
+noise_seed: 20241024  # base seed of the channel noise streams; identical for A, B and every head seed (paired draws)
+data_root: data_cache
+w4_root: outputs/week4
+anchor_root: data_cache/anchors
+space_root: outputs/week5b/space
+bridge_dir: outputs/week5b/bridge
+heads_root: outputs/week5b/stage2/heads
+out_root: outputs/week5b/stage2
+device: auto
+audio_workers: 5  # processes for CLAP feature extraction when embedding decoded audio
+
+section: F  # F | cross | within (week5b_s2_metrics.py)
+kind: A  # A | B | promptsA | promptsB (week5b_s2_embed.py)
+tasks: [cifar10, mnist, text, audio, caption_text, esc50_audio]
+channels: [awgn, rayleigh]
+splits: [val, test]
+variants: [cos5, cen]
+seeds: [42, 43, 44]
+
+tracking:
+  mode: offline
